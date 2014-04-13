@@ -5,14 +5,13 @@
 
 var express = require('express')
   , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
   , mongo = require('mongodb')
   , mongoose = require('mongoose')
-  , passport = require('passport');
+  , passport = require('passport')
+  , database = require('./database');
 //  , LocalStrategy = require('passport-local').Strategy; //niet helemaal begrepen
-//  , db = require('localhost:27017/data');
 
 var app = express();
 
@@ -32,15 +31,34 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-//mongo starten?
+function User(name, password, emailAdress) {
+	this.name = name;
+	this.password = password;
+	this.emailAdress = emailAdress;
+};
 
-mongoose.connect('mongodb://localhost/data', function(err) {
-	  if (err) { throw err; }
-	});
-
+//homepage
 app.get('/', routes.index);
-app.get('/users', user.list);
-app.get('/newuser', routes.newUser);
+//
+app.get('/newuser', function(req, res){
+	  res.render('newuser', { title: 'Making an account' })});
+app.post('/newuser',
+exports.newuser = function AddUser(req, res){
+					var name = req.username;
+					var password = req.password;
+					var cpassword = req.cpassword;
+					var email = req.useremail;
+					//making User object with info from url "/newuser"
+					var userObject = User (name, password, email);
+					if (password == cpassword) {
+						database.addNewUser(userObject);
+					} else { //error not matching password en terugkeren naar de /newuser
+						res.send("Error password mismatching");
+					}
+					//debug
+					console.log("User = %s email = %s Password = %s Password2 = %s ", name, email, password, cpassword);
+	
+})
 //app.post('/adduser', routes.addUser(db));
 // app.post('/login', routes.login);
 
